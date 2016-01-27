@@ -8,10 +8,6 @@ public class StringHeredocParsingTestCase extends ParsingTestCase {
         assertParsedAndQuotedAroundError();
     }
 
-    public void testEmptyHexadecimalEscapeSequence() {
-        assertParsedWithLocalErrorAndRemoteExit();
-    }
-
     public void testEscapeSequences() {
         assertParsedAndQuotedCorrectly();
     }
@@ -25,7 +21,7 @@ public class StringHeredocParsingTestCase extends ParsingTestCase {
     }
 
     public void testWhitespaceEndPrefix() {
-        assertParsedAndQuotedCorrectly();
+        assertParsedAndQuotedAroundError();
     }
 
     @Override

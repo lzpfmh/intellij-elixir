@@ -9,16 +9,13 @@ import java.util.List;
 public interface ElixirInterpolation extends Quotable {
 
   @NotNull
-  List<ElixirAdjacentExpression> getAdjacentExpressionList();
-
-  @NotNull
   List<ElixirEmptyParentheses> getEmptyParenthesesList();
 
   @NotNull
   List<ElixirEndOfExpression> getEndOfExpressionList();
 
   @NotNull
-  List<ElixirMatchedExpression> getMatchedExpressionList();
+  List<ElixirUnmatchedExpression> getUnmatchedExpressionList();
 
   @NotNull
   List<ElixirUnqualifiedNoParenthesesManyArgumentsCall> getUnqualifiedNoParenthesesManyArgumentsCallList();

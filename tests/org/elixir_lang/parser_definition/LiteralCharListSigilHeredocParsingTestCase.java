@@ -12,6 +12,10 @@ public class LiteralCharListSigilHeredocParsingTestCase extends ParsingTestCase 
         assertParsedAndQuotedCorrectly();
     }
 
+    public void testEmptyUnicodeEscapeSequence() {
+        assertParsedAndQuotedCorrectly();
+    }
+
     public void testEscapeSequences() {
         assertParsedAndQuotedCorrectly();
     }
@@ -29,7 +33,7 @@ public class LiteralCharListSigilHeredocParsingTestCase extends ParsingTestCase 
     }
 
     public void testWhitespaceEndPrefix() {
-        assertParsedAndQuotedCorrectly();
+        assertParsedAndQuotedAroundError();
     }
 
     @Override

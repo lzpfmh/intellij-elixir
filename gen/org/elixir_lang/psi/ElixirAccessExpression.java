@@ -2,13 +2,19 @@
 package org.elixir_lang.psi;
 
 import com.ericsson.otp.erlang.OtpErlangObject;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.ResolveState;
+import com.intellij.psi.scope.PsiScopeProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface ElixirAccessExpression extends ElixirMatchedExpression, Quotable {
+public interface ElixirAccessExpression extends MaybeModuleName, Quotable {
 
   @Nullable
   ElixirAlias getAlias();
+
+  @Nullable
+  ElixirAnonymousFunction getAnonymousFunction();
 
   @Nullable
   ElixirAtNumericOperation getAtNumericOperation();
@@ -21,6 +27,9 @@ public interface ElixirAccessExpression extends ElixirMatchedExpression, Quotabl
 
   @Nullable
   ElixirBinaryWholeNumber getBinaryWholeNumber();
+
+  @Nullable
+  ElixirBitString getBitString();
 
   @Nullable
   ElixirCaptureNumericOperation getCaptureNumericOperation();
@@ -39,9 +48,6 @@ public interface ElixirAccessExpression extends ElixirMatchedExpression, Quotabl
 
   @Nullable
   ElixirDecimalWholeNumber getDecimalWholeNumber();
-
-  @Nullable
-  ElixirEmptyBlock getEmptyBlock();
 
   @Nullable
   ElixirHexadecimalWholeNumber getHexadecimalWholeNumber();
@@ -110,7 +116,13 @@ public interface ElixirAccessExpression extends ElixirMatchedExpression, Quotabl
   ElixirLiteralWordsLine getLiteralWordsLine();
 
   @Nullable
+  ElixirMapOperation getMapOperation();
+
+  @Nullable
   ElixirOctalWholeNumber getOctalWholeNumber();
+
+  @Nullable
+  ElixirParentheticalStab getParentheticalStab();
 
   @Nullable
   ElixirStringHeredoc getStringHeredoc();
@@ -119,10 +131,20 @@ public interface ElixirAccessExpression extends ElixirMatchedExpression, Quotabl
   ElixirStringLine getStringLine();
 
   @Nullable
+  ElixirStructOperation getStructOperation();
+
+  @Nullable
+  ElixirTuple getTuple();
+
+  @Nullable
   ElixirUnaryNumericOperation getUnaryNumericOperation();
 
   @Nullable
   ElixirUnknownBaseWholeNumber getUnknownBaseWholeNumber();
+
+  boolean isModuleName();
+
+  boolean processDeclarations(PsiScopeProcessor processor, ResolveState state, PsiElement lastParent, PsiElement place);
 
   @NotNull
   OtpErlangObject quote();

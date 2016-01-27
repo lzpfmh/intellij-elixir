@@ -57,7 +57,7 @@ public class OctalIntegerTest extends TokenTest {
                 { "+", ElixirTypes.DUAL_OPERATOR, ElixirFlexLexer.DUAL_OPERATION },
                 { ",", ElixirTypes.COMMA, INITIAL_STATE },
                 { "-", ElixirTypes.DUAL_OPERATOR, ElixirFlexLexer.DUAL_OPERATION },
-                { ".", ElixirTypes.DOT_OPERATOR, INITIAL_STATE },
+                { ".", ElixirTypes.DOT_OPERATOR, ElixirFlexLexer.DOT_OPERATION },
                 { "/", ElixirTypes.MULTIPLICATION_OPERATOR, ElixirFlexLexer.KEYWORD_PAIR_MAYBE },
                 { "0", ElixirTypes.VALID_OCTAL_DIGITS, ElixirFlexLexer.OCTAL_WHOLE_NUMBER },
                 { "1", ElixirTypes.VALID_OCTAL_DIGITS, ElixirFlexLexer.OCTAL_WHOLE_NUMBER },
@@ -137,9 +137,9 @@ public class OctalIntegerTest extends TokenTest {
                 { "x", ElixirTypes.INVALID_OCTAL_DIGITS, ElixirFlexLexer.OCTAL_WHOLE_NUMBER },
                 { "y", ElixirTypes.INVALID_OCTAL_DIGITS, ElixirFlexLexer.OCTAL_WHOLE_NUMBER },
                 { "z", ElixirTypes.INVALID_OCTAL_DIGITS, ElixirFlexLexer.OCTAL_WHOLE_NUMBER },
-                { "{", TokenType.BAD_CHARACTER, INITIAL_STATE },
+                { "{", ElixirTypes.OPENING_CURLY, INITIAL_STATE },
                 { "|", ElixirTypes.PIPE_OPERATOR, ElixirFlexLexer.KEYWORD_PAIR_MAYBE },
-                { "}", TokenType.BAD_CHARACTER, INITIAL_STATE },
+                { "}", ElixirTypes.CLOSING_CURLY, INITIAL_STATE },
                 { "~", ElixirTypes.TILDE, ElixirFlexLexer.SIGIL }
         });
     }

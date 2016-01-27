@@ -129,10 +129,10 @@ THREE_TOKEN_ARROW_OPERATOR = "<<<" |
                              "<|>" |
                              "<~>" |
                              ">>>" |
+                             "^^^" |
                              "~>>"
 THREE_TOKEN_COMPARISON_OPERATOR = "!==" |
                                   "==="
-THREE_TOKEN_HAT_OPERATOR = "^^^"
 THREE_TOKEN_MAP_OPERATOR = "%" {OPENING_CURLY} {CLOSING_CURLY}
 THREE_TOKEN_OR_OPERATOR = "|||"
 THREE_TOKEN_UNARY_OPERATOR = "not" |
@@ -141,7 +141,6 @@ THREE_TOKEN_UNARY_OPERATOR = "not" |
 THREE_TOKEN_OPERATOR = {THREE_TOKEN_AND_OPERATOR} |
                        {THREE_TOKEN_ARROW_OPERATOR} |
                        {THREE_TOKEN_COMPARISON_OPERATOR} |
-                       {THREE_TOKEN_HAT_OPERATOR} |
                        {THREE_TOKEN_MAP_OPERATOR} |
                        {THREE_TOKEN_OR_OPERATOR} |
                        {THREE_TOKEN_UNARY_OPERATOR} |
@@ -199,18 +198,19 @@ ONE_TOKEN_RELATIONAL_OPERATOR = "<" |
 ONE_TOKEN_STRUCT_OPERATOR = "%"
 ONE_TOKEN_UNARY_OPERATOR = "!" |
                            "^"
-
-ONE_TOKEN_OPERATOR = {ONE_TOKEN_AT_OPERATOR} |
-                     {ONE_TOKEN_CAPTURE_OPERATOR} |
-                     {ONE_TOKEN_DOT_OPERATOR} |
-                     {ONE_TOKEN_DUAL_OPERATOR} |
-                     {ONE_TOKEN_IN_OPERATOR} |
-                     {ONE_TOKEN_MATCH_OPERATOR} |
-                     {ONE_TOKEN_MULTIPLICATION_OPERATOR} |
-                     {ONE_TOKEN_PIPE_OPERATOR} |
-                     {ONE_TOKEN_RELATIONAL_OPERATOR} |
-                     {ONE_TOKEN_STRUCT_OPERATOR} |
-                     {ONE_TOKEN_UNARY_OPERATOR}
+ONE_TOKEN_REFERENCABLE_OPERATOR = {ONE_TOKEN_AT_OPERATOR} |
+                                  {ONE_TOKEN_CAPTURE_OPERATOR} |
+                                  {ONE_TOKEN_DUAL_OPERATOR} |
+                                  {ONE_TOKEN_IN_OPERATOR} |
+                                  {ONE_TOKEN_MATCH_OPERATOR} |
+                                  {ONE_TOKEN_MULTIPLICATION_OPERATOR} |
+                                  {ONE_TOKEN_PIPE_OPERATOR} |
+                                  {ONE_TOKEN_RELATIONAL_OPERATOR} |
+                                  {ONE_TOKEN_UNARY_OPERATOR}
+ONE_TOKEN_UNREFERENCABLE_OPERATOR = {ONE_TOKEN_DOT_OPERATOR} |
+                                    {ONE_TOKEN_STRUCT_OPERATOR}
+ONE_TOKEN_OPERATOR = {ONE_TOKEN_REFERENCABLE_OPERATOR} |
+                     {ONE_TOKEN_UNREFERENCABLE_OPERATOR}
 
 AND_OPERATOR = {THREE_TOKEN_AND_OPERATOR} |
                {TWO_TOKEN_AND_OPERATOR}
@@ -225,7 +225,6 @@ DOT_OPERATOR = {ONE_TOKEN_DOT_OPERATOR}
 DUAL_OPERATOR = {ONE_TOKEN_DUAL_OPERATOR}
 COMPARISON_OPERATOR = {THREE_TOKEN_COMPARISON_OPERATOR} |
                       {TWO_TOKEN_COMPARISON_OPERATOR}
-HAT_OPERATOR = {THREE_TOKEN_HAT_OPERATOR}
 IN_MATCH_OPERATOR = {TWO_TOKEN_IN_MATCH_OPERATOR}
 IN_OPERATOR = {ONE_TOKEN_IN_OPERATOR}
 MAP_OPERATOR = {THREE_TOKEN_MAP_OPERATOR}
@@ -245,6 +244,10 @@ UNARY_OPERATOR = {THREE_TOKEN_UNARY_OPERATOR} |
                  {ONE_TOKEN_UNARY_OPERATOR}
 WHEN_OPERATOR = {FOUR_TOKEN_WHEN_OPERATOR}
 
+REFERENCABLE_OPERATOR = {FOUR_TOKEN_OPERATOR} |
+                        {THREE_TOKEN_OPERATOR} |
+                        {TWO_TOKEN_OPERATOR} |
+                        {ONE_TOKEN_REFERENCABLE_OPERATOR}
 // OPERATOR is from longest to shortest so longest match wins
 OPERATOR = {FOUR_TOKEN_OPERATOR} |
            {THREE_TOKEN_OPERATOR} |
@@ -258,7 +261,17 @@ OPERATOR = {FOUR_TOKEN_OPERATOR} |
 ATOM_END = [?!]
 ATOM_MIDDLE = [0-9a-zA-Z@_]
 ATOM_START = [a-zA-Z_]
+ATOM = {ATOM_START} {ATOM_MIDDLE}* {ATOM_END}?
 COLON = :
+
+/*
+ * Block Identifiers
+ */
+
+AFTER = "after"
+CATCH = "catch"
+ELSE = "else"
+RESCUE = "rescue"
 
 /*
  * Containers
@@ -290,14 +303,8 @@ EOL = \n|\r\n
 
 ESCAPE = "\\"
 
-ESCAPED_CHARACTER_TOKEN = {ESCAPE} .
-ESCAPED_CHARACTER_CODE = {ESCAPE} "x{" {HEXADECIMAL_DIGIT}{1,6} "}" |
-                         {ESCAPE} "x" {HEXADECIMAL_DIGIT}{1,2}
+UNICODE_ESCAPE_CHARACTER = "u"
 ESCAPED_EOL = {ESCAPE} {EOL}
-
-VALID_ESCAPE_SEQUENCE = {ESCAPED_CHARACTER_CODE} |
-                        {ESCAPED_CHARACTER_TOKEN} |
-                        {ESCAPED_EOL}
 
 /*
  * Char tokens
@@ -313,6 +320,8 @@ HORIZONTAL_SPACE = [ \t]
 VERTICAL_SPACE = [\n\r]
 SPACE = {HORIZONTAL_SPACE} | {VERTICAL_SPACE}
 WHITE_SPACE=[\ \t\f]
+// see https://github.com/elixir-lang/elixir/blob/de39bbaca277002797e52ffbde617ace06233a2b/lib/elixir/src/elixir_tokenizer.erl#L609-L610
+SPACE_SENSITIVE={DUAL_OPERATOR}[^(\[<{%+-/>:]
 
 /*
  *  Comments
@@ -372,6 +381,13 @@ ALIAS_HEAD = [A-Z]
 ALIAS = {ALIAS_HEAD} {IDENTIFIER_TAIL}
 
 /*
+ * Bit Strings
+ */
+
+CLOSING_BIT = ">>"
+OPENING_BIT = "<<"
+
+/*
  * Parent
  */
 
@@ -428,9 +444,17 @@ QUOTE_HEREDOC_PROMOTER = {CHAR_LIST_HEREDOC_PROMOTER} | {STRING_HEREDOC_PROMOTER
 QUOTE_HEREDOC_TERMINATOR = {CHAR_LIST_HEREDOC_TERMINATOR} | {STRING_HEREDOC_TERMINATOR}
 
 /*
+ * Function References
+ */
+
+REFERENCE_OPERATOR = "/"
+REFERENCE_INFIX_OPERATOR = ({WHITE_SPACE}|{EOL})*{REFERENCE_OPERATOR}
+
+/*
  * Regular Keywords
  */
 
+DO = "do"
 END = "end"
 FALSE = "false"
 FN = "fn"
@@ -507,16 +531,17 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
  *  States - Ordered lexigraphically
  */
 
-%state ATOM_BODY
 %state ATOM_START
 %state BASE_WHOLE_NUMBER_BASE
 %state BINARY_WHOLE_NUMBER
+%state CALL_MAYBE
 %state CALL_OR_KEYWORD_PAIR_MAYBE
 %state CHAR_TOKENIZATION
 %state DECIMAL_EXPONENT
 %state DECIMAL_EXPONENT_SIGN
 %state DECIMAL_FRACTION
 %state DECIMAL_WHOLE_NUMBER
+%state DOT_OPERATION
 %state DUAL_OPERATION
 %state ESCAPE_IN_LITERAL_GROUP
 %state ESCAPE_SEQUENCE
@@ -532,8 +557,10 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
 %state KEYWORD_PAIR_MAYBE
 %state NAMED_SIGIL
 %state OCTAL_WHOLE_NUMBER
+%state REFERENCE_OPERATION
 %state SIGIL
 %state SIGIL_MODIFIERS
+%state UNICODE_ESCAPE_SEQUENCE
 %state UNKNOWN_BASE_WHOLE_NUMBER
 
 %%
@@ -542,6 +569,11 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
    Rules that aren't dependent on detecting the end of INTERPOLATION can be shared between <YYINITIAL> and
    <INTERPOLATION> */
 <YYINITIAL, INTERPOLATION> {
+  {AFTER}                                    { pushAndBegin(KEYWORD_PAIR_MAYBE);
+                                               return ElixirTypes.AFTER; }
+  // Must be before any single operator's match
+  {REFERENCABLE_OPERATOR} / {REFERENCE_INFIX_OPERATOR} { pushAndBegin(REFERENCE_OPERATION);
+                                                         return ElixirTypes.IDENTIFIER; }
   {AND_OPERATOR}                             { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.AND_OPERATOR; }
   {ARROW_OPERATOR}                           { pushAndBegin(KEYWORD_PAIR_MAYBE);
@@ -554,16 +586,31 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                                                return ElixirTypes.AT_OPERATOR; }
   {BASE_WHOLE_NUMBER_PREFIX} / {BASE_WHOLE_NUMBER_BASE} { pushAndBegin(BASE_WHOLE_NUMBER_BASE);
                                                           return ElixirTypes.BASE_WHOLE_NUMBER_PREFIX; }
-  {BIT_STRING_OPERATOR}                      { pushAndBegin(KEYWORD_PAIR_MAYBE);
+  /* For bitString rule, OPENING_BIT will be lexed.  This is just for when the operator needs to be one token for
+     keywords key */
+  {BIT_STRING_OPERATOR} / {COLON}{SPACE}     { // Definitely a Keyword pair, but KEYWORD_PAIR_MAYBE state will still work.
+                                               pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.BIT_STRING_OPERATOR; }
+  {CATCH}                                    { pushAndBegin(KEYWORD_PAIR_MAYBE);
+                                               return ElixirTypes.CATCH; }
   {CAPTURE_OPERATOR}                         { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.CAPTURE_OPERATOR; }
+  /* Must be after {BIT_STRING_OPERATOR} as {BIT_STRING_OPERATOR} combines {OPENING_BIT} {CLOSING_BIT} and must be
+     before {COMPARISON_OPERATOR} as {COMPARISON_OPERATOR} includes ">" which would match the begining of {CLOSING_BIT}
+   */
+  {CLOSING_BIT}                              { return ElixirTypes.CLOSING_BIT; }
   {CLOSING_BRACKET}                          { return ElixirTypes.CLOSING_BRACKET; }
   {CLOSING_PARENTHESIS}                      { return ElixirTypes.CLOSING_PARENTHESIS; }
+  {DO}                                       { pushAndBegin(KEYWORD_PAIR_MAYBE);
+                                               return ElixirTypes.DO; }
+  {ELSE}                                     { pushAndBegin(KEYWORD_PAIR_MAYBE);
+                                               return ElixirTypes.ELSE; }
   {EOL}                                      { return ElixirTypes.EOL; }
   {END}                                      { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.END; }
-  {ESCAPED_EOL}|{WHITE_SPACE}+       { return TokenType.WHITE_SPACE; }
+  // see https://github.com/elixir-lang/elixir/blob/de39bbaca277002797e52ffbde617ace06233a2b/lib/elixir/src/elixir_tokenizer.erl#L605-L613
+  {ESCAPED_EOL}|{WHITE_SPACE}+ / {SPACE_SENSITIVE} { return ElixirTypes.SIGNIFICANT_WHITE_SPACE; }
+  {ESCAPED_EOL}|{WHITE_SPACE}+                     { return TokenType.WHITE_SPACE; }
   {CHAR_TOKENIZER}                                      { pushAndBegin(CHAR_TOKENIZATION);
                                                           return ElixirTypes.CHAR_TOKENIZER; }
   /* So that that atom of comparison operator consumes all 3 ':' instead of {TYPE_OPERATOR} consuming '::'
@@ -578,19 +625,33 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                                                return ElixirTypes.COLON; }
   {COMMA}                                    { return ElixirTypes.COMMA; }
   {COMMENT}                                  { return ElixirTypes.COMMENT; }
+  /* Must be after {BIT_STRING_OPERATOR} as {BIT_STRING_OPERATOR} combines {OPENING_BIT} {CLOSING_BIT}; must be after
+     {ARROW_OPERATOR} because {ARROW_OPERATOR} includes "<<<", which is a longer match than {OPENING_BIT}'s "<<"; and
+     must be before {COMPARISON_OPERATOR} as {COMPARISON_OPERATOR} includes "<" which would match the begining of
+     {OPENING_BIT}. */
+  {OPENING_BIT}                              { return ElixirTypes.OPENING_BIT; }
   {COMPARISON_OPERATOR}                      { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.COMPARISON_OPERATOR; }
   // DOT_OPERATOR is not a valid keywordKey, so no need to go to KEYWORD_PAIR_MAYBE
-  {DOT_OPERATOR}                             { return ElixirTypes.DOT_OPERATOR; }
+  {DOT_OPERATOR}                             { pushAndBegin(DOT_OPERATION);
+                                               return ElixirTypes.DOT_OPERATOR; }
   {DUAL_OPERATOR}                            { pushAndBegin(DUAL_OPERATION);
                                                return ElixirTypes.DUAL_OPERATOR; }
   {FALSE}                                    { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.FALSE; }
   {FN}                                       { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.FN; }
-  {HAT_OPERATOR}                             { pushAndBegin(KEYWORD_PAIR_MAYBE);
-                                               return ElixirTypes.HAT_OPERATOR; }
   {OPENING_BRACKET}                          { return ElixirTypes.OPENING_BRACKET; }
+  /* Must be before {OPENING_CURLY} so entire "{}" is matched instead of just "{"
+
+     For tuple rule, OPENING_CURLY will be lexed.  This is just for when the operator needs to be one token for
+     keywords key */
+  {TUPLE_OPERATOR} / {COLON}{SPACE}          { // Definitely a Keyword pair, but KEYWORD_PAIR_MAYBE state will still work.
+                                               pushAndBegin(KEYWORD_PAIR_MAYBE);
+                                               return ElixirTypes.TUPLE_OPERATOR; }
+  {OPENING_CURLY}                            { // use stack to match up nested OPENING_CURLY and CLOSING_CURLY
+                                               pushAndBegin(YYINITIAL);
+                                               return ElixirTypes.OPENING_CURLY; }
   {OPENING_PARENTHESIS}                      { return ElixirTypes.OPENING_PARENTHESIS; }
   // Must be before {IDENTIFIER} as "in" would be parsed as an identifier since it's a lowercase alphanumeric.
   {IN_OPERATOR}                              { pushAndBegin(KEYWORD_PAIR_MAYBE);
@@ -601,6 +662,9 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
   // Must be before {IDENTIFIER} as "or" would be parsed as an identifier since it's a lowercase alphanumeric.
   {OR_OPERATOR}                              { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.OR_OPERATOR; }
+  // Must be before {IDENTIFIER} as "rescue" would be parsed as an identifier since it's a lowercase alphanumeric.
+  {RESCUE}                                   { pushAndBegin(KEYWORD_PAIR_MAYBE);
+                                               return ElixirTypes.RESCUE; }
   // Must be before {IDENTIFIER} as "true" would be parsed as an identifier since it's a lowercase alphanumeric.
   {TRUE}                                     { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.TRUE; }
@@ -614,7 +678,10 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                                                return ElixirTypes.IDENTIFIER; }
   {IN_MATCH_OPERATOR}                        { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.IN_MATCH_OPERATOR; }
-  {MAP_OPERATOR}                             { pushAndBegin(KEYWORD_PAIR_MAYBE);
+  /* For map rule, STRUCT_OPERATOR EOL* OPENING_CURLY will be lexed.  This is just for when the operator needs to be one
+     token for keywords key */
+  {MAP_OPERATOR} / {COLON}{SPACE}            { // Definitely a Keyword pair, but KEYWORD_PAIR_MAYBE state will still work.
+                                               pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.MAP_OPERATOR; }
   {MATCH_OPERATOR}                           { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.MATCH_OPERATOR; }
@@ -631,8 +698,6 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                                                return ElixirTypes.STRUCT_OPERATOR; }
   {TILDE}                                    { pushAndBegin(SIGIL);
                                                return ElixirTypes.TILDE; }
-  {TUPLE_OPERATOR}                           { pushAndBegin(KEYWORD_PAIR_MAYBE);
-                                               return ElixirTypes.TUPLE_OPERATOR; }
   {TWO_OPERATOR}                             { pushAndBegin(KEYWORD_PAIR_MAYBE);
                                                return ElixirTypes.TWO_OPERATOR; }
   {VALID_DECIMAL_DIGITS}                     { pushAndBegin(DECIMAL_WHOLE_NUMBER);
@@ -654,19 +719,10 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
  *  maintained to ensure precedence.
  */
 
-<ATOM_BODY> {
-  {ATOM_END}     { org.elixir_lang.lexer.StackFrame stackFrame = pop();
-                   yybegin(stackFrame.getLastLexicalState());
-                   return ElixirTypes.ATOM_FRAGMENT; }
-  {ATOM_MIDDLE}+ { return ElixirTypes.ATOM_FRAGMENT; }
-  // any other character ends the atom
-  {EOL}|.        { org.elixir_lang.lexer.StackFrame stackFrame = pop();
-                   handleInState(stackFrame.getLastLexicalState()); }
-}
-
 /// Must be after {QUOTE_PROMOTER} for <ATOM_START> so that
 <ATOM_START> {
-  {ATOM_START}     { yybegin(ATOM_BODY);
+  {ATOM}           { org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                     yybegin(stackFrame.getLastLexicalState());
                      return ElixirTypes.ATOM_FRAGMENT; }
   {QUOTE_PROMOTER} { /* At the end of the quote, return the state (YYINITIAL or INTERPOLATION) before ATOM_START as
                         anything after the closing quote should be handle by the state prior to ATOM_START.  Without
@@ -678,7 +734,7 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
   {OPERATOR}       { org.elixir_lang.lexer.StackFrame stackFrame = pop();
                      yybegin(stackFrame.getLastLexicalState());
                      return ElixirTypes.ATOM_FRAGMENT; }
-  {EOL}            { return TokenType.BAD_CHARACTER; }
+  {EOL}|.          { return TokenType.BAD_CHARACTER; }
 }
 
 <BASE_WHOLE_NUMBER_BASE> {
@@ -704,12 +760,20 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                             handleInState(stackFrame.getLastLexicalState()); }
 }
 
+<CALL_MAYBE, CALL_OR_KEYWORD_PAIR_MAYBE> {
+  {OPENING_BRACKET}|{OPENING_PARENTHESIS} { org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                                            handleInState(stackFrame.getLastLexicalState());
+                                            // zero-width token
+                                            return ElixirTypes.CALL; }
+}
+
+<CALL_MAYBE> {
+  {EOL}|.                                 { org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                                            handleInState(stackFrame.getLastLexicalState()); }
+}
+
 <CALL_OR_KEYWORD_PAIR_MAYBE> {
-  {OPENING_PARENTHESIS} { org.elixir_lang.lexer.StackFrame stackFrame = pop();
-                          handleInState(stackFrame.getLastLexicalState());
-                          // zero-width token
-                          return ElixirTypes.CALL; }
-  {EOL}|.               { handleInState(KEYWORD_PAIR_MAYBE); }
+  {EOL}|.                                 { handleInState(KEYWORD_PAIR_MAYBE); }
 }
 
 <CHAR_TOKENIZATION> {
@@ -758,6 +822,101 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                              handleInState(stackFrame.getLastLexicalState()); }
 }
 
+<DOT_OPERATION> {
+  {AFTER}                                           { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.AFTER; }
+  {AND_OPERATOR}                                    { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.AND_OPERATOR; }
+  {ARROW_OPERATOR}                                  { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.ARROW_OPERATOR; }
+  {AT_OPERATOR}                                     { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.AT_OPERATOR; }
+  {CATCH}                                           { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.CATCH; }
+  {CAPTURE_OPERATOR}                                { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.CAPTURE_OPERATOR; }
+  {COMPARISON_OPERATOR}                             { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.COMPARISON_OPERATOR; }
+  {DO}                                              { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.DO; }
+  {DUAL_OPERATOR}                                   { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.DUAL_OPERATOR; }
+  {END}                                             { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.END; }
+  {ELSE}                                            { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.ELSE; }
+  {FALSE}                                           { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.FALSE; }
+  {IN_MATCH_OPERATOR}                               { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.IN_MATCH_OPERATOR; }
+  {IN_OPERATOR}                                     { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.IN_OPERATOR; }
+  {MATCH_OPERATOR}                                  { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.MATCH_OPERATOR; }
+  {MULTIPLICATION_OPERATOR}                         { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.MULTIPLICATION_OPERATOR; }
+  {NIL}                                             { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.NIL; }
+  {OR_OPERATOR}                                     { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.OR_OPERATOR; }
+  {PIPE_OPERATOR}                                   { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.PIPE_OPERATOR; }
+  {RELATIONAL_OPERATOR}                             { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.RELATIONAL_OPERATOR; }
+  {RESCUE}                                          { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.RESCUE; }
+  {STAB_OPERATOR}                                   { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.STAB_OPERATOR; }
+  {STRUCT_OPERATOR}                                 { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.STRUCT_OPERATOR; }
+  {TRUE}                                            { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.TRUE; }
+  {TWO_OPERATOR}                                    { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.TWO_OPERATOR; }
+  {UNARY_OPERATOR}                                  { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.UNARY_OPERATOR; }
+  {WHEN_OPERATOR}                                   { yybegin(CALL_MAYBE);
+                                                      return ElixirTypes.WHEN_OPERATOR; }
+
+  /* Must be after {AFTER}, {CATCH}, {DO}, {END}, {ELSE}, {IN_OPERATOR}, {OR_OPERATOR} (for 'or'), and {WHEN_OPERATOR}
+     as all those keywords would match {IDENTIFIER} */
+  {IDENTIFIER}                                      { yybegin(CALL_OR_KEYWORD_PAIR_MAYBE);
+                                                      return ElixirTypes.IDENTIFIER; }
+
+  /*
+   * Emulates strip_space in elixir_tokenizer.erl
+   */
+
+  // see https://github.com/elixir-lang/elixir/blob/de39bbaca277002797e52ffbde617ace06233a2b/lib/elixir/src/elixir_tokenizer.erl#L605-L613
+  {ESCAPED_EOL}|{WHITE_SPACE}+ / {SPACE_SENSITIVE}  { return ElixirTypes.SIGNIFICANT_WHITE_SPACE; }
+  {ESCAPED_EOL}|{WHITE_SPACE}+                      { return TokenType.WHITE_SPACE; }
+  {EOL}                                             { return ElixirTypes.EOL; }
+
+  /* Be better than strip_space and handle_dot and ignore comments so that IDENTIFIER and operators are parsed the same
+     after dots.
+
+     @see https://groups.google.com/forum/#!topic/elixir-lang-core/nnI4oUB-63U
+   */
+  {COMMENT}                                         { return ElixirTypes.COMMENT; }
+
+  /* Must be before {QUOTE_PROMOTER} as {QUOTE_PROMOTER} is a prefix of {QUOTE_HEREDOC_PROMOTER} */
+  {QUOTE_HEREDOC_PROMOTER}                          { /* Does NOT return to CALL_MAYBE because heredocs aren't valid
+                                                         relative identifiers.  This clauses is only here to prevent a
+                                                         prefix match on {QUOTE_PROMOTER}. */
+                                                      org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                                                      handleInState(stackFrame.getLastLexicalState()); }
+  {QUOTE_PROMOTER}                                  { /* return to CALL_MAYBE so that OPENING_BRACKET or
+                                                         OPENING_PARENTHESES after quote can be parsed
+                                                         with CALL so parser doesn't think call is no parentheses with
+                                                         parenthetical or list argument. */
+                                                      yybegin(CALL_MAYBE);
+                                                      startQuote(yytext());
+                                                      return promoterType(); }
+
+  .                                                 { org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                                                      handleInState(stackFrame.getLastLexicalState()); }
+}
+
 <DUAL_OPERATION> {
   {WHITE_SPACE}+ { org.elixir_lang.lexer.StackFrame stackFrame = pop();
                    yybegin(stackFrame.getLastLexicalState());
@@ -778,6 +937,8 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                                     return ElixirTypes.EOL; }
   {HEXADECIMAL_WHOLE_NUMBER_BASE} { yybegin(HEXADECIMAL_ESCAPE_SEQUENCE);
                                     return ElixirTypes.HEXADECIMAL_WHOLE_NUMBER_BASE; }
+  {UNICODE_ESCAPE_CHARACTER}      { yybegin(UNICODE_ESCAPE_SEQUENCE);
+                                    return ElixirTypes.UNICODE_ESCAPE_CHARACTER; }
   .                               { org.elixir_lang.lexer.StackFrame stackFrame = pop();
                                     yybegin(stackFrame.getLastLexicalState());
                                     return ElixirTypes.ESCAPED_CHARACTER_TOKEN; }
@@ -788,6 +949,7 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                              yybegin(stackFrame.getLastLexicalState());
                              return ElixirTypes.CLOSING_CURLY; }
   {HEXADECIMAL_DIGIT}{1,6} { return ElixirTypes.VALID_HEXADECIMAL_DIGITS; }
+  .                        { return TokenType.BAD_CHARACTER; }
 }
 
 <GROUP,
@@ -804,31 +966,48 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
 
 // Rules in GROUP, but not GROUP_HEREDOC_LINE_BODY
 <GROUP> {
-  {ESCAPE}           {
-                       if (isInterpolating()) {
-                         pushAndBegin(ESCAPE_SEQUENCE);
-                         return ElixirTypes.ESCAPE;
-                       } else {
-                         yybegin(ESCAPE_IN_LITERAL_GROUP);
-                         return fragmentType();
-                       }
-                     }
-  {GROUP_TERMINATOR} {
-                       if (isTerminator(yytext())) {
-                         if (isSigil()) {
-                           yybegin(SIGIL_MODIFIERS);
-                           return terminatorType();
-                         } else {
-                           org.elixir_lang.lexer.StackFrame stackFrame = pop();
-                           yybegin(stackFrame.getLastLexicalState());
-                           return stackFrame.terminatorType();
-                         }
-                       } else {
-                         return fragmentType();
-                       }
-                     }
-  {EOL}|.            { return fragmentType(); }
+  {ESCAPE}{GROUP_TERMINATOR} {
+                               CharSequence groupTerminator = yytext().subSequence(1, yytext().length());
 
+                               // manual lookahread pushes terminator back
+                               yypushback(groupTerminator.length());
+
+                               /* even literal groups have escape sequences because escaping the terminator is still
+                                  allowed */
+                               if (isTerminator(groupTerminator) || isInterpolating()) {
+                                 // matches interpolating behavior from `{ESCAPE}` rule below
+                                 pushAndBegin(ESCAPE_SEQUENCE);
+                                 return ElixirTypes.ESCAPE;
+                               } else {
+                                 // matches non-interpolating behavior from `{ESCAPE}` rule below
+                                 yybegin(ESCAPE_IN_LITERAL_GROUP);
+                                 return fragmentType();
+                               }
+                             }
+  {ESCAPE}                   {
+                               if (isInterpolating()) {
+                                 pushAndBegin(ESCAPE_SEQUENCE);
+                                 return ElixirTypes.ESCAPE;
+                               } else {
+                                 yybegin(ESCAPE_IN_LITERAL_GROUP);
+                                 return fragmentType();
+                               }
+                             }
+  {GROUP_TERMINATOR}         {
+                               if (isTerminator(yytext())) {
+                                 if (isSigil()) {
+                                   yybegin(SIGIL_MODIFIERS);
+                                   return terminatorType();
+                                 } else {
+                                   org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                                   yybegin(stackFrame.getLastLexicalState());
+                                   return stackFrame.terminatorType();
+                                 }
+                               } else {
+                                 return fragmentType();
+                               }
+                             }
+  {EOL}|.                    { return fragmentType(); }
 }
 
 <GROUP_HEREDOC_END> {
@@ -866,9 +1045,19 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
 }
 
 <GROUP_HEREDOC_LINE_START> {
-  {WHITE_SPACE}+ / {GROUP_HEREDOC_TERMINATOR} {
+  {WHITE_SPACE}+{GROUP_HEREDOC_TERMINATOR}    {
+                                                String groupHeredocTerminator = yytext().toString().trim();
+
+                                                // manual lookahead pushes terminator back
+                                                yypushback(3);
+
+                                                if (isTerminator(groupHeredocTerminator)) {
                                                   yybegin(GROUP_HEREDOC_END);
                                                   return ElixirTypes.HEREDOC_PREFIX_WHITE_SPACE;
+                                                } else {
+                                                  yybegin(GROUP_HEREDOC_LINE_BODY);
+                                                  return ElixirTypes.HEREDOC_LINE_WHITE_SPACE_TOKEN;
+                                                }
                                               }
   {WHITE_SPACE}+                              {
                                                 yybegin(GROUP_HEREDOC_LINE_BODY);
@@ -942,6 +1131,7 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
   {SIGIL_PROMOTER}         { setPromoter(yytext());
                              yybegin(GROUP);
                              return promoterType(); }
+  {EOL}                    { return TokenType.BAD_CHARACTER; }
 }
 
 <OCTAL_WHOLE_NUMBER> {
@@ -949,6 +1139,14 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
   {VALID_OCTAL_DIGITS}   { return ElixirTypes.VALID_OCTAL_DIGITS; }
   {EOL}|.                { org.elixir_lang.lexer.StackFrame stackFrame = pop();
                            handleInState(stackFrame.getLastLexicalState()); }
+}
+
+<REFERENCE_OPERATION> {
+  {ESCAPED_EOL}|{WHITE_SPACE}+ { return TokenType.WHITE_SPACE; }
+  {EOL}                        { return ElixirTypes.EOL; }
+  {REFERENCE_OPERATOR}         { org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                                 yybegin(stackFrame.getLastLexicalState());
+                                 return ElixirTypes.MULTIPLICATION_OPERATOR; }
 }
 
 <SIGIL> {
@@ -964,10 +1162,31 @@ GROUP_HEREDOC_TERMINATOR = {QUOTE_HEREDOC_TERMINATOR}|{SIGIL_HEREDOC_TERMINATOR}
                      handleInState(stackFrame.getLastLexicalState()); }
 }
 
+<UNICODE_ESCAPE_SEQUENCE> {
+  {OPENING_CURLY}          { yybegin(EXTENDED_HEXADECIMAL_ESCAPE_SEQUENCE);
+                             return ElixirTypes.OPENING_CURLY; }
+  {HEXADECIMAL_DIGIT}{1,4} { org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                             yybegin(stackFrame.getLastLexicalState());
+                             return ElixirTypes.VALID_HEXADECIMAL_DIGITS; }
+  {EOL}|.                  { org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                             handleInState(stackFrame.getLastLexicalState()); }
+}
+
 <UNKNOWN_BASE_WHOLE_NUMBER> {
   {INVALID_UNKNOWN_BASE_DIGITS} { return ElixirTypes.INVALID_UNKNOWN_BASE_DIGITS; }
   {EOL}|.                       { org.elixir_lang.lexer.StackFrame stackFrame = pop();
                                   handleInState(stackFrame.getLastLexicalState()); }
+}
+
+/* Only rules for <YYINITIAL>, but not <INTERPOLATION> go here. */
+<YYINITIAL> {
+  {CLOSING_CURLY} { // protect from too many "}"
+                    if (!stack.empty()) {
+                      org.elixir_lang.lexer.StackFrame stackFrame = pop();
+                      yybegin(stackFrame.getLastLexicalState());
+                    }
+
+                    return ElixirTypes.CLOSING_CURLY; }
 }
 
 // MUST go last so that . mapping to BAD_CHARACTER is the rule of last resort for the listed states

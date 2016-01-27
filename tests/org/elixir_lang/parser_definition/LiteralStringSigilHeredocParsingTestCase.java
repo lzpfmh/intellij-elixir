@@ -12,6 +12,10 @@ public class LiteralStringSigilHeredocParsingTestCase extends ParsingTestCase {
         assertParsedAndQuotedCorrectly();
     }
 
+    public void testEmptyUnicodeEscapeSequence() {
+        assertParsedAndQuotedCorrectly();
+    }
+
     public void testEscapeSequences() {
         assertParsedAndQuotedCorrectly();
     }
@@ -29,6 +33,10 @@ public class LiteralStringSigilHeredocParsingTestCase extends ParsingTestCase {
     }
 
     public void testWhitespaceEndPrefix() {
+        assertParsedAndQuotedAroundError();
+    }
+
+    public void testEmbeddedStringHeredoc() {
         assertParsedAndQuotedCorrectly();
     }
 

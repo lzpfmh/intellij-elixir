@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.elixir_lang</id>
   <name>Elixir</name>
-  <version>0.3.2</version>
+  <version>2.1.0</version>
   <vendor email="Kronic.Deth@gmail.com">Luke Imhoff</vendor>
 
   <description><![CDATA[
@@ -9,17 +9,347 @@
     ]]></description>
 
   <change-notes><![CDATA[
-      <strong>
-        The parser is incomplete until
-        <a href="https://github.com/KronicDeth/intellij-elixir/milestones/v1.0.0">
-          v1.0.0
-        </a>.  If you see an odd error from valid Elixir code, it is most likely due to the incomplete parser.  Please
-        subscribe to notifications or comment on
-        <a href="https://github.com/KronicDeth/intellij-elixir/issues/6">
-          Issue #6
-        </a> if you want to be notified when the parser is complete.
-      </strong>
-      <h1>Next Release</h1>
+      <h1>v2.1.0</h1>
+      <ul>
+        <li>
+          <p>Enhancements</p>
+          <ul>
+            <li><code>\u</code> in strings and char lists for unicode mapping</li>
+            <li>Test against Elixir 1.1.1 and 1.2.0</li>
+            <li>
+              More flexible <code>elixir --version</code> parsing: works with <code>elixir</code> 1.2.0 and earlier
+            </li>
+          </ul>
+        </li>
+        <li>
+          <p>Bug Fixes</p>
+          <ul>
+            <li>Update IntelliJ to 14.1.6 to fix 403 errors in Travis-CI build</li>
+          </ul>
+        </li>
+      </ul>
+      <h1>v2.0.0</h1>
+      <ul>
+        <li>
+          <p>Enhancements</p>
+          <ul>
+            <li>
+              <p>Highlighters for</p>
+              <ul>
+                <li>Kernel Functions</li>
+                <li>Kernel Macros</li>
+                </li>Kernel.SpecialForms Macros</li>
+              </ul>
+            </li>
+            <li>Test against Elixir v1.1.1</li>
+            <li>
+              Highlight <code>after</code>, <code>catch</code>, <code>do</code>, <code>else</code>, <code>end,
+              </code>fn<code>, and </code>rescue` as keywords.
+            </li>
+            <li>
+              <p>Annotate Module Attributes</p>
+              <ul>
+                <li>
+                  Documentation module attributes (<code>@doc</code>, <code>@moduledoc</code>, and
+                  <code>@typedoc</code>) are annotated as "Documentation Module Attributes" while all other module
+                  attributes are annotated as "Module Attributes".
+                </li>
+                <li>
+                  The string or heredoc argument to a documentation module attribute (<code>@doc</code>,
+                  <code>@moduledoc</code>, and <code>@typedoc</code>) is annotated as "Documentation Text"
+                </li>
+                <li>
+                  Function names passed to <code>@callback</code>, <code>@macrocallback</code> or
+                  <code>@spec</code> are annotated as "Specification".
+                </li>
+                <li>
+                  Variables/calls in the parameters and return of <code>@callback</code>, <code>@macrocallback</code>,
+                  <code>@spec</code> are annotated as "Type".
+                </li>
+                <li>
+                  Parameters of <code>@opaque</code>, <code>@type</code>, <code>@typep</code> names are annotated as
+                  "Type Parameter"
+                </li>
+                <li>
+                  Keyword keys from the <code>when</code> clause of <code>@callback</code>, <code>@macrocallback</code>
+                  or <code>@spec</code> definitions and their usage are annotated as "Type Parameters"
+                </li>
+                <li>
+                  <code>@doc false</code>, <code>@moduledoc false</code>, and <code>@typedoc false</code> will annotate
+                  the <code>false</code> with a weak warning: "Will make documented invisible to the documentation
+                  extraction tools like ExDoc.".
+                </li>
+              </ul>
+            </li>
+            <li>
+              <p>Module Attribute resolution and refactoring</p>
+              <ul>
+                <li>Go To Definition for module attributes.</li>
+                <li>Module attribute completion</li>
+                <li>
+                  Module attributes that can't be resolved will have "Unresolved module attribute" error annotation
+                  (i.e. red squiggly underline).
+                </li>
+                <li>Find Usages of module attributes from their declarations.</li>
+                <li>
+                  Rename module attributes inline (editing the name in the declaration will change the name at the usage
+                  site at the same time without a dialog).
+                </li>
+                <li>
+                  The module attribute value (from the declaration site) will be folded into the usage site.  It can be
+                  reverted to the literal `@module_name` text by clicking the + to unfold.
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <p>Bug Fixes</p>
+          <ul>
+            <li>Change "edition" to "addition" in README.</li>
+            <li>
+              Sped up reparsing when [ENTER] is hit in the middle of comment by removing the custom error handling
+              element, adjacentExpression, and going with the default error handling provided by JetBrains' OpenAPI.
+            </li>
+            <li>
+              Fix <code>mix</code> version detection on Windows.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <p>Incompatible Changes</p>
+          <ul>
+            <li>
+              Removed "Add Newline" Quick Fix as it depended on <code>adjacentExpression</code> elements, which have now
+              been removed to speed up error handling when comments become code.
+            </li>
+            <li>
+              Removed "Add Semicolon" Quick Fix as it depended on <code>adjacentExpression</code> elements, which have
+              now been removed to speed up error handling when comments become code.
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <h1>v1.2.1</h1>
+      <ul>
+        <li>
+          <p>Enhancements</p>
+          <ul>
+            <li>
+              Keywords not at the end of no parentheses calls will be properly marked as errors.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <p>Bug Fixes</p
+          <ul>
+            <li>
+              Fix <code>IllegalStateException</code> for file delete and rename by giving <code>ElixirFile</code>s
+              descriptive names for safe-refactoring displaying file usage.
+            </li>
+            <li>
+              README states explicitly that the plugin works with *both* IntelliJ Community and Ultimate.
+            </li>
+            <li>
+              README states that the plugin is free.
+            </li>
+            <li>
+              Prevent match error when typing <code>~</code> to start a sigil that is followed later by a
+              <code>\n</code> by matching <code>EOL</code> in the <code>NAMED_SIGIL</code> state as a
+              <code>BAD_CHARACTER</code>.
+            </li>
+            <li>
+               Keywords at the end of a no parentheses call that is surrounded by parentheses will not be marked as an
+               error when that parenthetical group appears in the middle of an outer call.
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <h1>v1.2.0</h1>
+      <ul>
+        <li>
+          <p>Enhancements</p>
+          <ul>
+            <li>
+              If (1) you have intellij-erlang installed and (2) you have an atom in Erlang that starts with
+              <code>Elixir.</code>, such as <code>'Elixir.Test'</code>, then intellij-elixir will annotate whether it
+              can resolve the name to a <code>defmodule</code> call in Elixir files.
+            </li>
+            <li>
+              Default SDK path for Linux and Windows.
+            </li>
+            <li>
+              Go To Declaration (<code>Cmd+Click</code>, <code>Cmd+B</code>, </code>Navigate > Declaration</code>) from
+              Alias to <code>defmodule</code> where Alias is declared.
+            </li>
+            <li>
+              Index <code>defmodule</code>s for fast Go To Declaration in
+              <a href="https://github.com/elixir-lang/elixir">
+                <code>elixir-lang/elixir</code>
+              </a>
+              and other large projects.
+            </li>
+            <li>
+              Find Usage for Alias in <code>defmodule</code>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <p>Bug Fixes</p>
+          <ul>
+            <li>Fi links to screenshots in README</li>
+          </ul>
+        </li>
+      </ul>
+      <h1>v1.1.0</h1>
+      <ul>
+        <li>
+          <p>Enhancements</p>
+          <ul>
+            <li>
+              <p>
+                <code>Build</code>
+              </p>
+              <ul>
+                <li><code>Compile</code> an individual file</li>
+                <li><code>Make Project</code> to build the entire project</li>
+              </ul>
+            </li>
+            <li>
+              <p>
+                <code>New</code>
+              </p>
+              <ul>
+                <li>
+                  <p>
+                    <code>Elixir File</code> has new templates
+                  </p>
+                  <ul>
+                    <li>
+                      <code>Empty module</code>
+                    </li>
+                    <li>
+                      <code>Elixir Application</code>
+                    </li>
+                    <li>
+                      <code>Elixir Supervisor</code>
+                    </li>
+                    <li>
+                      <code>Elixir GenServer</code>
+                    </li>
+                    <li>
+                      <code>Elixir GenEvent</code>
+                    </li>
+                  <ul>
+                </li>
+                <li>
+                  <code>Project > Elixir</code> creates a new Elixir project with an empty <code>lib</code> directory
+                  marked as source directory.
+                </li>
+                <li>
+                  <p>
+                    <code>Project from Existing Sources... </code>
+                  </p>
+                  <ul>
+                    <li>
+                       <code>Create project from existing sources</code> sets up the project with SDK using a
+                       pre-existing directory.
+                    </li>
+                    <li>
+                      <p>
+                        <code>Import project from external model > Mix</code>
+                      </p>
+                      <ul>
+                        <li>Fetches the the dependencies with the local version of <code>mix</code></li>
+                        <li>Marks <code>lib</code> directory as source</li>
+                        <li>Marks <code>test</code> directory as test sources</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li><code>Run > Elixir Mix</code> to setup Run Configurations to run <code>mix</code> tasks.</li>
+          </ul>
+        </li>
+      </ul>
+      <h1>v1.0.0</h1>
+      <ul>
+        <li>
+          <p>Enhancements</p>
+          <ul>
+            <li>Update ant build on travis-ci.org to use IDEA 14.1.4 (from 14.0.2)</li>
+            <li>Parser is verified to quote the same as native Elixir</li>
+          </ul>
+        </li>
+        <li>
+          <p>Bug Fixes</p>
+          <ul>
+            <li>Fix parsing of unary vs binary +/- with leading and trailing spaces and newlines</li>
+            <li>Allow EOL between list arguments and <code>]</code></li>
+            <li>
+              Relative identifiers after <code>.</code> that start with <code>and</code>, <code>or</code>, and
+              <code>not</code> will be lexed as a single identifier instead of <code>and</code>, <code>or</code>, or
+              <code>not</code> followed by another identifier.
+            </li>
+            <li><code>end</code> is allowed as a relative identifier after <code>.</code></li>
+            <li>Fix <code>(...)</code> as part of matched expression in no parentheses stab signature</li>
+            <li>Allow multiple newlines to mark the end of an expression, but only one <code>;</code></li>
+            <li>
+              Allow operators in function references (<code>&lt;op&gt;/&lt;arity&gt;</code>) for function captures
+              (<code>&amp;&lt;op&gt;/&lt;arity&gt;</code>)
+            </li>
+            <li><code>unquote_splicing</code> is properly wrapped in <code>__block__</code> when in stab bodies</li>
+            <li>Check for matching terminator in heredocs when determining white space type at beginning of line</li>
+            <li>Allow &lt;space&gt;+&lt;EOL&gt; to count as addition</li>
+            <li>Unary expressions inside parentheses are no longer marked <code>ambiguous_op: nil</code></li>
+            <li>
+              Differentiate between <code>Qualifier.'relative'()</code> vs <code>Qualifier.'relative' ()</code> and
+              <code>Qualifier."relative"()</code> vs <code>Qualifier."relative" ()</code>
+            </li>
+            <li>Fix link to Elixir website in README</li>
+            <li>All tokens have human-readable names and/or expected characters for better error messages</li>
+          </ul>
+          <p>Incompatible Changes</p>
+          <ul>
+            <li>
+              New Elixir File has moved to the last item in the New File menu to preserve <code>CTRL+N ENTER</code>
+              keyboard shortcut for <code>New &gt; File</code>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <h1>0.3.5</h1>
+      <ul>
+        <li>
+          <p>Enhancements</p>
+          <ul>
+            <li><code>do</code> blocks (<code>do end</code>)</li>
+            <li>Unmatched expressions (operations involving <code>do</code> block calls and normal matched expressions)</li>
+          </ul>
+        </li>
+        <li>
+          <p>Bug Fixes</p>
+          <ul>
+            <li>Lex full atom instead of just identifier-like operator prefix (<code>:in<nospace>dex</code> before vs <code>:index</code> after)</li>
+            <li><code>!</code> and <code>not</code> are properly wrapped in <code>__block__</code>s when in stab bodies</li>
+          </ul>
+        </li>
+      </ul>
+      <h1>v0.3.4</h1>
+      <ul>
+        <li>
+          <p>Enhancements</p>
+          <ul>
+            <li>Bracket at expression (<code>@foo[key]</code>)</li>
+            <li>Anonymous functions (<code>fn end</code>), stab clauses (<code>-&gt;</code>), and parentheticals (<code>1 + 2</code>)</li>
+            <li>Maps (<code>%{}</code>) and structs (<code>%User{}</code>)</li>
+            <li>Tuples (<code>{}</code>)</li>
+            <li>Bit Strings (<code>&lt;&lt;&gt;&gt;</code>)</li>
+          </ul>
+        </li>
+      </ul>
+      <h1>v0.3.3</h1>
       <ul>
         <li>
           <p>Enhancements</p>
@@ -41,14 +371,17 @@
                 </li>
                 <li>
                   <p>Parentheses with...</p>
-                  <li>No arguments (<code>Alias.function()</code>)</li>
-                  <li>No Parentheses Call (<code>Alias.function(Inner.function positional, key: value</code>)</li>
-                  <li>Keywords (<code>Alias.function(key: value)</code>)</li>
-                  <li>Positional and Keyword arguments (<code>Alias.function(positional, key: value)</code>)</li>
-                  <li>Trailing parentheses for quoting (<code>def unquote(variable)(positional)</code>)</li>
+                  <ul>
+                    <li>No arguments (<code>Alias.function()</code>)</li>
+                    <li>No Parentheses Call (<code>Alias.function(Inner.function positional, key: value</code>)</li>
+                    <li>Keywords (<code>Alias.function(key: value)</code>)</li>
+                    <li>Positional and Keyword arguments (<code>Alias.function(positional, key: value)</code>)</li>
+                    <li>Trailing parentheses for quoting (<code>def unquote(variable)(positional)</code>)</li>
+                  </ul>
                 </li>
               </ul>
             </li>
+            <li>Bracket expressions (<code>foo[key]</code>)</li>
           </ul>
         </li>
       </ul>
@@ -80,7 +413,7 @@
           <p>Enhancements</p>
           <ul>
             <li>
-              File > New > Project From Existing Sources can be used in IntelliJ to setup the excludes, sources, tests,
+              File &gt; New &gt; Project From Existing Sources can be used in IntelliJ to setup the excludes, sources, tests,
               SDK and libraries for an Elixir project that has already been created with <code>mix new</code>.
             </li>
             <li>
@@ -94,6 +427,7 @@
             </li>
           </ul>
         </li>
+      </ul>
       <h1>v0.3.0</h1>
       <ul>
         <li>
@@ -113,7 +447,7 @@
           <p>Incompatible Changes</p>
           <ul>
             <li>
-              New Elixir File validates that the name is a valid Alias, so each `.` separated part must start with a
+              New Elixir File validates that the name is a valid Alias, so each <code>.</code> separated part must start with a
               capital letter.  Previous New Elixir File validated that the name was a valid path, and so forced the name
               to be lowercase.
             </li>
@@ -137,8 +471,8 @@
             <li>Inspection that marks errors for ambiguous commas</li>
             <li>Inspection that marks errors for ambiguous parentheses</li>
             <li>Quick Fix for the ambiguous parentheses to remove the space between the function name and the opening parentheses.</li>
-            <li>Inspection that marks errors for missing end-of-expressions (`;` and newlines) between expressions.</li>
-            <li>Quick Fix to insert `;` for missing end-of-expression.</li>
+            <li>Inspection that marks errors for missing end-of-expressions (<code>;</code> and newlines) between expressions.</li>
+            <li>Quick Fix to insert <code>;</code> for missing end-of-expression.</li>
             <li>Quick Fix to insert newline for missing end-of-expression.</li>
           </ul>
         </li>
@@ -194,7 +528,7 @@
           <ul>
             <li>All valid escape sequences (<code>\&lt;character&gt;</code>, <code>\x&lt;hexadecimal&gt;</code>, <code>\x{&lt;hexadecimal&gt;}</code>,) are recognized.</li>
             <li>Support for creation of Elixir modules</li>
-            <li>Use pygments' elixir_example.ex supplied by Alexei Sholik for Color Settings Page.<li>
+            <li>Use pygments' elixir_example.ex supplied by Alexei Sholik for Color Settings Page.</li>
             <li><code>?</code> before any character or valid escape sequence will be recognized as a character token.</li>
             <li><code>;</code> is recognized as EOL. <code>\r\n</code> and <code>\n</code> style EOL can be escaped with <code>\</code> and will be treated as whitespace.</li>
             <li>Operator arity, associativity, and precedence</li>
@@ -230,14 +564,40 @@
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
   <depends>com.intellij.modules.lang</depends>
+  <depends config-file="intellij-erlang-plugin.xml" optional="true">org.jetbrains.erlang</depends>
   <depends config-file="rich-platform-plugin.xml" optional="true">com.intellij.modules.java</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <!-- Elixir Module Structure -->
+    <sdkType implementation="org.elixir_lang.sdk.ElixirSdkType"/>
+
+    <moduleConfigurationEditorProvider implementation="org.elixir_lang.module.DefaultModuleEditorsProvider" order="first"/>
+
+    <editorNotificationProvider implementation="org.elixir_lang.inspection.SetupSDKNotificationProvider"/>
+
+    <!-- Mix related extensions -->
+    <projectConfigurable instance="org.elixir_lang.settings.ElixirExternalToolsConfigurable" />
+    <projectService serviceImplementation="org.elixir_lang.mix.settings.MixSettings" />
+    <programRunner implementation="org.elixir_lang.mix.runner.MixRunner" />
+    <configurationType implementation="org.elixir_lang.mix.runner.MixRunConfigurationType" />
+
     <colorSettingsPage implementation="org.elixir_lang.ElixirColorSettingsPage"/>
-    <moduleConfigurationEditorProvider implementation="org.elixir_lang.ModuleConfigurationEditorProvider" order="first"/>
     <fileTypeFactory implementation="org.elixir_lang.ElixirFileTypeFactory"/>
+
+    <!-- for template -->
     <internalFileTemplate name="Elixir Module"/>
+    <internalFileTemplate name="Elixir Application"/>
+    <internalFileTemplate name="Elixir Supervisor"/>
+    <internalFileTemplate name="Elixir GenServer"/>
+    <internalFileTemplate name="Elixir GenEvent"/>
+
+    <annotator implementationClass="org.elixir_lang.annonator.Kernel" language="Elixir"/>
+    <annotator implementationClass="org.elixir_lang.annonator.ModuleAttribute" language="Elixir"/>
+    <lang.findUsagesProvider language="Elixir" implementationClass="org.elixir_lang.FindUsagesProvider"/>
+    <lang.foldingBuilder language="Elixir" implementationClass="org.elixir_lang.psi.FoldingBuilder"/>
+    <lang.namesValidator language="Elixir" implementationClass="org.elixir_lang.psi.module_attribute.NamesValidator"/>
     <lang.parserDefinition language="Elixir" implementationClass="org.elixir_lang.ElixirParserDefinition"/>
+    <lang.refactoringSupport language="Elixir" implementationClass="org.elixir_lang.refactoring.SupportProvider"/>
     <lang.syntaxHighlighterFactory key="Elixir" implementationClass="org.elixir_lang.ElixirSyntaxHighlighterFactory"/>
     <localInspection displayName="Ambiguous nested calls" enabledByDefault="true" groupName="Elixir"
                      implementationClass="org.elixir_lang.inspection.NoParenthesesManyStrict" language="Elixir"
@@ -245,29 +605,27 @@
     <localInspection displayName="Ambiguous parentheses" enabledByDefault="true" groupName="Elixir"
                      implementationClass="org.elixir_lang.inspection.NoParenthesesStrict" language="Elixir"
                      level="ERROR" shortName="NoParenthesesStrict"/>
-    <localInspection displayName="Missing End-of-Expression" enabledByDefault="true" groupName="Elixir"
-                     implementationClass="org.elixir_lang.inspection.MissingEndOfExpression" language="Elixir"
-                     level="ERROR" shortName="MissingEndOfExpression"/>
     <localInspection displayName="Keywords Not At End" enabledByDefault="true"
                      groupName="Elixir" implementationClass="org.elixir_lang.inspection.KeywordsNotAtEnd"
                      language="Elixir" level="ERROR" shortName="KeywordsNotAtEnd"/>
-    <moduleType id="ELIXIR_MIX_PROJECT" implementationClass="org.elixir_lang.mix.ModuleType"/>
-    <sdkType implementation="org.elixir_lang.SdkType"/>
+
+    <stubIndex implementation="org.elixir_lang.psi.stub.index.AllName"/>
   </extensions>
 
   <application-components>
     <!-- Add your application components here -->
   </application-components>
 
-  <project-components>
-    <!-- Add your project components here -->
-  </project-components>
-
   <actions>
-    <action id="Elixir.NewFile" class="org.elixir_lang.action.CreateElixirModuleAction"
-            text="Elixir File" description="Create new Elixir Module">
-      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
-    </action>
+    <group id="LangElixir.NewActions">
+      <separator/>
+      <action id="Elixir.NewFile" class="org.elixir_lang.action.CreateElixirModuleAction"
+              text="Elixir File" description="Create new Elixir Module">
+      </action>
+      <separator/>
+
+      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewXml" />
+    </group>
   </actions>
 
 </idea-plugin>

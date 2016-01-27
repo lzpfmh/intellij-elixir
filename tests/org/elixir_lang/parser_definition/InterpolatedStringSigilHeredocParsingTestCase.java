@@ -12,6 +12,10 @@ public class InterpolatedStringSigilHeredocParsingTestCase extends ParsingTestCa
         assertParsedAndQuotedCorrectly();
     }
 
+    public void testEmptyUnicodeEscapeSequence() {
+        assertParsedAndQuotedCorrectly();
+    }
+
     public void testEscapeSequences() {
         assertParsedAndQuotedCorrectly();
     }
@@ -25,7 +29,7 @@ public class InterpolatedStringSigilHeredocParsingTestCase extends ParsingTestCa
     }
 
     public void testWhitespaceEndPrefix() {
-        assertParsedAndQuotedCorrectly();
+        assertParsedAndQuotedAroundError();
     }
 
     @Override

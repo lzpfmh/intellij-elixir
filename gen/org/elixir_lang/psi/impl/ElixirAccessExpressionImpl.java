@@ -2,13 +2,17 @@
 package org.elixir_lang.psi.impl;
 
 import com.ericsson.otp.erlang.OtpErlangObject;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.ResolveState;
+import com.intellij.psi.scope.PsiScopeProcessor;
 import org.elixir_lang.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ElixirAccessExpressionImpl extends ElixirMatchedExpressionImpl implements ElixirAccessExpression {
+public class ElixirAccessExpressionImpl extends ASTWrapperPsiElement implements ElixirAccessExpression {
 
   public ElixirAccessExpressionImpl(ASTNode node) {
     super(node);
@@ -23,6 +27,12 @@ public class ElixirAccessExpressionImpl extends ElixirMatchedExpressionImpl impl
   @Nullable
   public ElixirAlias getAlias() {
     return findChildByClass(ElixirAlias.class);
+  }
+
+  @Override
+  @Nullable
+  public ElixirAnonymousFunction getAnonymousFunction() {
+    return findChildByClass(ElixirAnonymousFunction.class);
   }
 
   @Override
@@ -47,6 +57,12 @@ public class ElixirAccessExpressionImpl extends ElixirMatchedExpressionImpl impl
   @Nullable
   public ElixirBinaryWholeNumber getBinaryWholeNumber() {
     return findChildByClass(ElixirBinaryWholeNumber.class);
+  }
+
+  @Override
+  @Nullable
+  public ElixirBitString getBitString() {
+    return findChildByClass(ElixirBitString.class);
   }
 
   @Override
@@ -83,12 +99,6 @@ public class ElixirAccessExpressionImpl extends ElixirMatchedExpressionImpl impl
   @Nullable
   public ElixirDecimalWholeNumber getDecimalWholeNumber() {
     return findChildByClass(ElixirDecimalWholeNumber.class);
-  }
-
-  @Override
-  @Nullable
-  public ElixirEmptyBlock getEmptyBlock() {
-    return findChildByClass(ElixirEmptyBlock.class);
   }
 
   @Override
@@ -225,8 +235,20 @@ public class ElixirAccessExpressionImpl extends ElixirMatchedExpressionImpl impl
 
   @Override
   @Nullable
+  public ElixirMapOperation getMapOperation() {
+    return findChildByClass(ElixirMapOperation.class);
+  }
+
+  @Override
+  @Nullable
   public ElixirOctalWholeNumber getOctalWholeNumber() {
     return findChildByClass(ElixirOctalWholeNumber.class);
+  }
+
+  @Override
+  @Nullable
+  public ElixirParentheticalStab getParentheticalStab() {
+    return findChildByClass(ElixirParentheticalStab.class);
   }
 
   @Override
@@ -243,6 +265,18 @@ public class ElixirAccessExpressionImpl extends ElixirMatchedExpressionImpl impl
 
   @Override
   @Nullable
+  public ElixirStructOperation getStructOperation() {
+    return findChildByClass(ElixirStructOperation.class);
+  }
+
+  @Override
+  @Nullable
+  public ElixirTuple getTuple() {
+    return findChildByClass(ElixirTuple.class);
+  }
+
+  @Override
+  @Nullable
   public ElixirUnaryNumericOperation getUnaryNumericOperation() {
     return findChildByClass(ElixirUnaryNumericOperation.class);
   }
@@ -251,6 +285,14 @@ public class ElixirAccessExpressionImpl extends ElixirMatchedExpressionImpl impl
   @Nullable
   public ElixirUnknownBaseWholeNumber getUnknownBaseWholeNumber() {
     return findChildByClass(ElixirUnknownBaseWholeNumber.class);
+  }
+
+  public boolean isModuleName() {
+    return ElixirPsiImplUtil.isModuleName(this);
+  }
+
+  public boolean processDeclarations(PsiScopeProcessor processor, ResolveState state, PsiElement lastParent, PsiElement place) {
+    return ElixirPsiImplUtil.processDeclarations(this, processor, state, lastParent, place);
   }
 
   @NotNull

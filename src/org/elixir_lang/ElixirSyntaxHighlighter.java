@@ -3,11 +3,15 @@ package org.elixir_lang;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
+import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.intellij.util.xmlb.annotations.Text;
+import com.thaiopensource.xml.dtd.om.Def;
+import org.apache.xmlbeans.impl.xb.ltgfmt.Code;
 import org.elixir_lang.psi.ElixirTypes;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,6 +56,16 @@ public class ElixirSyntaxHighlighter extends SyntaxHighlighterBase {
             DefaultLanguageHighlighterColors.NUMBER
     );
 
+    public static final TextAttributesKey DOCUMENTATION_MODULE_ATTRIBUTE = createTextAttributesKey(
+            "ELIXIR_DOCUMENTATION_MODULE_ATTRIBUTE",
+            DefaultLanguageHighlighterColors.DOC_COMMENT_TAG
+    );
+
+    public static final TextAttributesKey DOCUMENTATION_TEXT = createTextAttributesKey(
+            "ELIXIR_DOCUMENTATION_TEXT",
+            DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE
+    );
+
     public static final TextAttributesKey EXPRESSION_SUBSTITUTION_MARK = createTextAttributesKey(
             "ELIXIR_EXPRESSION_SUBSTITUTION_MARK",
             DefaultLanguageHighlighterColors.PARENTHESES
@@ -65,6 +79,32 @@ public class ElixirSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey INVALID_DIGIT = createTextAttributesKey(
             "ELIXIR_INVALID_DIGIT",
             HighlighterColors.BAD_CHARACTER
+    );
+
+    public static final TextAttributesKey KERNEL_FUNCTION = createTextAttributesKey(
+            "ELIXIR_KERNEL_FUNCTION",
+            DefaultLanguageHighlighterColors.FUNCTION_CALL
+    );
+
+    public static final TextAttributesKey KERNEL_MACRO = createTextAttributesKey(
+            "ELIXIR_KERNEL_MACRO",
+            DefaultLanguageHighlighterColors.FUNCTION_CALL
+    );
+
+    public static final TextAttributesKey KERNEL_SPECIAL_FORMS_MACRO = createTextAttributesKey(
+            "ELIXIR_KERNEL_SPECIAL_FORMS_MACRO",
+            KERNEL_MACRO
+    );
+
+    public static final TextAttributesKey KEYWORD = createTextAttributesKey(
+            "ELIXIR_KEYWORD",
+            DefaultLanguageHighlighterColors.KEYWORD
+    );
+
+    public static final TextAttributesKey MODULE_ATTRIBUTE = createTextAttributesKey(
+            "ELIXIR_MODULE_ATTRIBUTE",
+            // Color used for "ERL_ATTRIBUTE" in intellij-erlang
+            CodeInsightColors.ANNOTATION_NAME_ATTRIBUTES
     );
 
     public static final TextAttributesKey OBSOLETE_WHOLE_NUMBER_BASE = createTextAttributesKey(
@@ -83,9 +123,30 @@ public class ElixirSyntaxHighlighter extends SyntaxHighlighterBase {
             DefaultLanguageHighlighterColors.TEMPLATE_LANGUAGE_COLOR
     );
 
+    public static final TextAttributesKey SPECIFICATION = createTextAttributesKey(
+            "ELIXIR_SPECIFICATION",
+            CodeInsightColors.METHOD_DECLARATION_ATTRIBUTES
+    );
+
+    public static final TextAttributesKey CALLBACK = createTextAttributesKey(
+            "ELIXIR_CALLBACK",
+            SPECIFICATION
+    );
+
     public static final TextAttributesKey STRING = createTextAttributesKey(
             "ELIXIR_STRING",
             DefaultLanguageHighlighterColors.STRING
+    );
+
+    public static final TextAttributesKey TYPE = createTextAttributesKey(
+            "ELIXIR_TYPE",
+            // matches ERL_TYPE
+            CodeInsightColors.ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES
+    );
+
+    public static final TextAttributesKey TYPE_PARAMETER = createTextAttributesKey(
+            "ELIXIR_TYPE_PARAMETER",
+            CodeInsightColors.TYPE_PARAMETER_NAME_ATTRIBUTES
     );
 
     public static final TextAttributesKey VALID_DIGIT = createTextAttributesKey(
@@ -114,6 +175,7 @@ public class ElixirSyntaxHighlighter extends SyntaxHighlighterBase {
     private static final TextAttributesKey[] EXPRESSION_SUBSTITUTION_MARK_KEYS = new TextAttributesKey[]{EXPRESSION_SUBSTITUTION_MARK};
     private static final TextAttributesKey[] IDENTIFIER_KEYS = new TextAttributesKey[]{IDENTIFIER};
     private static final TextAttributesKey[] INVALID_DIGITS_KEYS = new TextAttributesKey[]{INVALID_DIGIT};
+    private static final TextAttributesKey[] KEYWORD_KEYS = new TextAttributesKey[]{KEYWORD};
     private static final TextAttributesKey[] OBSOLETE_WHOLE_NUMBER_BASE_KEYS = new TextAttributesKey[]{OBSOLETE_WHOLE_NUMBER_BASE};
     private static final TextAttributesKey[] OPERATION_SIGN_KEYS = new TextAttributesKey[]{OPERATION_SIGN};
     private static final TextAttributesKey[] SIGIL_KEYS = new TextAttributesKey[]{SIGIL};
@@ -155,6 +217,15 @@ public class ElixirSyntaxHighlighter extends SyntaxHighlighterBase {
             ElixirTypes.INVALID_OCTAL_DIGITS,
             ElixirTypes.INVALID_UNKNOWN_BASE_DIGITS
     );
+    private static final TokenSet KEYWORD_TOKEN_SET = TokenSet.create(
+            ElixirTypes.AFTER,
+            ElixirTypes.CATCH,
+            ElixirTypes.DO,
+            ElixirTypes.ELSE,
+            ElixirTypes.END,
+            ElixirTypes.FN,
+            ElixirTypes.RESCUE
+    );
     private static final TokenSet OBSOLETE_WHOLE_NUMBER_BASE_TOKEN_SET = TokenSet.create(
             ElixirTypes.OBSOLETE_BINARY_WHOLE_NUMBER_BASE,
             ElixirTypes.OBSOLETE_HEXADECIMAL_WHOLE_NUMBER_BASE
@@ -167,7 +238,6 @@ public class ElixirSyntaxHighlighter extends SyntaxHighlighterBase {
             ElixirTypes.CAPTURE_OPERATOR,
             ElixirTypes.COMPARISON_OPERATOR,
             ElixirTypes.DUAL_OPERATOR,
-            ElixirTypes.HAT_OPERATOR,
             ElixirTypes.IN_OPERATOR,
             ElixirTypes.IN_MATCH_OPERATOR,
             ElixirTypes.MULTIPLICATION_OPERATOR,
@@ -262,6 +332,8 @@ public class ElixirSyntaxHighlighter extends SyntaxHighlighterBase {
             return IDENTIFIER_KEYS;
         } else if (INVALID_DIGITS_TOKEN_SET.contains(tokenType)) {
             return INVALID_DIGITS_KEYS;
+        } else if (KEYWORD_TOKEN_SET.contains(tokenType)) {
+            return KEYWORD_KEYS;
         } else if (OBSOLETE_WHOLE_NUMBER_BASE_TOKEN_SET.contains(tokenType)) {
             return OBSOLETE_WHOLE_NUMBER_BASE_KEYS;
         } else if (OPERATION_SIGNS.contains(tokenType)) {

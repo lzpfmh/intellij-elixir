@@ -1,4 +1,38 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Upgrading](#upgrading)
+  - [v2.0.0](#v200)
+    - [Preferences/Settings](#preferencessettings)
+    - [Quick Fix](#quick-fix)
+  - [v1.0.0](#v100)
+  - [v0.3.1](#v031)
+  - [v0.3.0](#v030)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Upgrading
+
+## v2.0.0
+
+### Preferences/Settings
+
+The fallback key attribute is `DefaultLanguageHighlighterColors.FUNCTION_CALL`, which is uncolored in most themes, so
+users need to customize their themes to see the highlighting for "Kernel Functions", "Kernel Macros", and
+"Kernel.SpecialForms Macros".
+
+### Quick Fix
+
+The "Add Newline" and "Add Semicolon" Quick Fixes have been removed as the parsing elements they depend on have been
+removed in favor of JetBrains' OpenAPI error handling.  If your workflow depended on these quick fixes you will have to
+manually add newlines or semicolons now.
+
+## v1.0.0
+
+New Elixir File has moved to the last item in the New File menu to preserve `CTRL+N ENTER` keyboard shortcut for
+`New > File`, so if you got used to using `CTRL+N ENTER` for New Elixir File you'll have to learn the new position at
+the bottom of the menu.
 
 ## v0.3.1
 

@@ -33,11 +33,11 @@ public class GeneralParsingTestCase extends ParsingTestCase {
     }
 
     public void testMultipleNumbersOnLine() {
-        assertParsedAndQuotedAroundError();
+        assertParsedWithErrors();
     }
 
     public void testMultipleStringsOnLine() {
-        assertParsedAndQuotedAroundError();
+        assertParsedWithErrors();
     }
 
     public void testNoEOLAtEOF() {
@@ -49,13 +49,17 @@ public class GeneralParsingTestCase extends ParsingTestCase {
     }
 
     public void testPygment() {
-        // TODO change to assertParsedAndQuotedAroundError() prior to 1.0 once parser is complete
-        doTest(true);
+        assertParsedWithErrors();
+    }
+
+    /* The pygment example text contains intentional errors to ensure that pygment can handle errors, but to check
+       completeness of the parser, the text needs to be error free so the quoting can be checked */
+    public void testPygmentWithoutErrors() {
+        assertParsedAndQuotedCorrectly();
     }
 
     public void testRealistic() {
-        // TODO change to assertParsedAndQuotedCorrectly() prior to 1.0 once parser is complete
-        doTest(true);
+        assertParsedAndQuotedCorrectly();
     }
 
     @Override
